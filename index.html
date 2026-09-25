@@ -314,8 +314,8 @@
   <header class="mobile-header">
     <div class="mobile-brand">Airborne Risk</div>
     <nav class="mobile-nav">
-      <a href="#introduction">Introduction</a>
-      <a href="#projects">Projects</a>
+      <a href="#" onclick="showHome(); return false;">Introduction</a>
+      <a href="#" onclick="showFlight(); return false;">Flight Risk</a>
     </nav>
   </header>
 
@@ -325,22 +325,13 @@
     <aside class="sidebar">
       <div class="brand">
         <h1 class="brand-title">Airborne Risk</h1>
-        <div class="brand-subtitle">
-          Interactive tools for exploring airborne infection risk and environmental interventions.
-        </div>
       </div>
 
       <nav class="nav">
-        <a class="nav-link primary" href="#introduction">Introduction</a>
+        <a class="nav-link primary" href="#" onclick="showHome(); return false;">Introduction</a>
 
         <div class="nav-heading">Projects</div>
-        <a class="nav-link project" href="./flight-risk.html">Flight Risk Explorer</a>
-
-        <!-- Add future projects here -->
-        <!--
-        <a class="nav-link project" href="./classroom/">Classroom Risk Explorer</a>
-        <a class="nav-link project" href="./transit/">Transit Risk Explorer</a>
-        -->
+        <a class="nav-link project" href="#" onclick="showFlight(); return false;">Flight Risk Explorer</a>
       </nav>
 
       <div class="sidebar-footer">
@@ -351,36 +342,36 @@
 
     <!-- RIGHT CONTENT -->
     <main class="main">
-      <div class="content">
+      <div class="content" id="content"></div>
+    </main>
 
-        <!-- INTRODUCTION -->
-        <section id="introduction" class="section">
+  </div>
+
+  <script>
+    function showHome() {
+      document.getElementById("content").innerHTML = `
+        <section class="section">
           <div class="eyebrow">Introduction</div>
-          <h1>Airborne Infection Risk Explorer</h1>
-
-          <p class="lead">
-            Hello! 
-          </p>
+          <h1>Young Yun</h1>
 
           <div class="profile">
-            <div class="profile-name">Young Yun</div>
             <div class="profile-role">
-              PhD Candidate in Environmental Health Sciences · University of Maryland, College Park
+              Doctoral Candidate, PHAB Lab<br>
+              University of Maryland, College Park
             </div>
+
             <p>
-              MPH, MDP
+              <a href="mailto:youngyun@umd.edu">youngyun@umd.edu</a>
             </p>
           </div>
         </section>
 
-        <!-- PROJECTS -->
-        <section id="projects" class="section">
+        <section class="section">
           <div class="eyebrow">Projects</div>
           <h2>Interactive Explorers</h2>
 
           <div class="project-grid">
-
-            <a class="project-card" href="./flight-risk.html">
+            <a class="project-card" href="#" onclick="showFlight(); return false;">
               <div class="project-kicker">Available</div>
               <h3>Flight Risk Explorer</h3>
               <p>
@@ -388,13 +379,34 @@
               </p>
               <span class="project-link">Open explorer</span>
             </a>
-
           </div>
         </section>
+      `;
 
-      </div>
-    </main>
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
-  </div>
+    function showFlight() {
+      document.getElementById("content").innerHTML = `
+        <iframe
+          src="./flight-risk.html"
+          title="Flight Risk Explorer"
+          style="
+            width:100%;
+            height:calc(100vh - 80px);
+            min-height:700px;
+            border:0;
+            border-radius:14px;
+            background:white;
+          ">
+        </iframe>
+      `;
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    showHome();
+  </script>
+
 </body>
 </html>
