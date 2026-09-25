@@ -256,7 +256,7 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
     </div>
 
     <p class="hero-intro">
-      This interactive tool explores how flight duration, infectious passengers, and airborne infectiousness may affect infection risk during air travel.
+      This interactive tool explores how flight duration, infectious passengers, and airborne infectiousness (represented by the quanta emission rate) may affect infection risk during air travel.
     </p>
   </section>
 
@@ -310,7 +310,7 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
           <h3>With GUV</h3>
           <div class="value-row"><span>Single-flight risk</span><strong id="vGuvSingle">—</strong></div>
           <div class="value-row"><span>Cumulative risk</span><strong id="vGuvCum">—</strong></div>
-          <div class="value-row"><span>Expected secondary infections</span><strong id="vGuvExpected">—</strong></div>
+          <div class="value-row"><span>Expected secondary infections on one flight</span><strong id="vGuvExpected">—</strong></div>
         </div>
       </div>
 
@@ -478,7 +478,7 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
           <td>Illustrative GUV effect</td>
           <td><b>75% reduction in effective airborne quanta</b></td>
           <td>
-            <b>Scenario assumption, not aircraft-specific measured efficacy.</b> The model uses 75% as an illustrative upper-bound intervention scenario. The value is motivated by the upper end of a 30–75% population-transmission reduction range discussed in a Founders Pledge review of GUV; that review explicitly notes substantial uncertainty and the need for more real-world transmission evidence.
+            <b>Scenario assumption, not aircraft-specific measured efficacy.</b> The model uses 75% as an illustrative upper-bound intervention scenario. Illustrative scenario assumption, not an aircraft-specific or empirically measured GUV efficacy estimate. The model assumes a 75% reduction in effective airborne quanta.
             <a href="https://www.founderspledge.com/research/germicidal-ultraviolet-light-guv-and-disease-transmission-reduction" target="_blank" rel="noopener">Founders Pledge, GUV and Disease Transmission Reduction (updated 2024)</a>.
           </td>
         </tr>
@@ -508,7 +508,7 @@ P = 1 − exp[−(I × q / n) × f × Δt]
 Expected secondary infections on one flight [1]:
 E = (n − I) × P
 
-Cumulative risk for one susceptible traveler over m comparable flights (derived in this model):
+Cumulative risk for one susceptible traveler over m comparable, independent flights (derived in this model):
 P_cum = 1 − (1 − P)^m
 
 Illustrative GUV scenario [3]:
