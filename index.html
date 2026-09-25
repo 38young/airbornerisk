@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GUV Flight Risk Explorer — Quanta Rate</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --text:#17212b; --muted:#687583; --border:#d8dee6;
+  --accent:#245f91; --accent-bg:#eaf2f9; --current:#934646; --guv:#2f7a62;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1250px;margin:auto;padding:28px 20px 46px}
+h1{font-size:30px;margin:0;line-height:1.15}
+.intro{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.55}
+.hero{text-align:center;margin:0 auto 24px;max-width:820px;padding:4px 12px 0}
+.hero h1{font-size:30px;font-weight:800;letter-spacing:-.01em}
+.airplane-illustration{width:230px;max-width:70%;margin:12px auto 6px}
+.airplane-illustration svg{display:block;width:100%;height:auto;margin:auto}
+.hero-intro{margin:4px auto 0;max-width:720px;color:var(--muted);font-size:14px;line-height:1.55}
+.top{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;align-items:stretch}
+.card,.chart-shell,.assumptions{background:var(--card);border:1px solid var(--border);border-radius:16px}
+.card{padding:17px}
+.control-card-title,.values-card-title{font-size:16px;font-weight:800;margin:0 0 12px}
+.control-section + .control-section{margin-top:16px;padding-top:15px;border-top:1px solid var(--border)}
+.values-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+.value-panel{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}
+.value-panel.current{border-left:4px solid #c58e8e}
+.value-panel.guv{border-left:4px solid #73b69e}
+.value-panel h3{margin:0 0 8px;font-size:14px}
+.value-panel.current h3{color:var(--current)}
+.value-panel.guv h3{color:var(--guv)}
+.value-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #edf1f5;font-size:12px;line-height:1.35}
+.value-row:last-child{border-bottom:none}
+.value-row span:first-child{color:#53606c}
+.value-row strong{text-align:right;color:#1d2630}
+.reduction-box{margin-top:9px;padding:0 2px;font-size:11.5px;line-height:1.45;color:#44515d}
+.reduction-title{display:none}
+.reduction-box div{display:flex;gap:5px;align-items:baseline;flex-wrap:wrap}
+.reduction-box div + div{margin-top:2px}
+.economic-section{margin-top:15px;padding-top:15px;border-top:1px solid var(--border)}
+.economic-section-title{font-size:16px;font-weight:800;margin:0 0 10px}
+.economic-box{padding:0;background:transparent;border:none}
+.economic-values{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.economic-reference{margin-top:8px;font-size:11px;color:var(--muted);line-height:1.4}
+.economic-unavailable{font-size:12px;line-height:1.45;color:var(--muted);padding:2px 0}
+.economic-value{padding:10px 11px;border-radius:10px;background:#f8fafc;border:1px solid #e5ebf1;min-height:74px;display:flex;flex-direction:column;justify-content:center}
+.economic-value .k{font-size:11px;color:#5b6774;margin-bottom:4px}
+.economic-value .v{font-size:18px;font-weight:850;color:#1d2630;line-height:1.15}
+.economic-value.current .v{color:var(--current)}
+.economic-value.guv .v{color:var(--guv)}
+.economic-unavailable{font-size:12px;line-height:1.45;color:var(--muted);padding:2px 0}
+
+.label{font-size:13px;font-weight:800;margin-bottom:9px}
+.slider-line{display:flex;gap:12px;align-items:center}
+input[type=range]{accent-color:var(--accent);touch-action:none}
+.slider-line input{width:100%}
+.pill{min-width:82px;padding:5px 9px;border-radius:999px;background:var(--accent-bg);color:var(--accent);font-weight:850;text-align:center}
+.small{color:var(--muted);font-size:12px;line-height:1.45}
+.q-control-grid{display:grid;grid-template-columns:minmax(0,1fr) 82px;gap:12px;align-items:start}
+.q-track-col{min-width:0}
+.q-track-col>input{display:block;width:100%;margin:3px 0 0}
+.q-pill{align-self:start}
+.qrefs{position:relative;height:28px;margin:7px 0 2px}
+.qref{position:absolute;top:0;transform:translateX(-50%);font-size:11px;color:#52606d;text-align:center;white-space:nowrap}
+.qref:first-child{transform:none;text-align:left}
+.qref:last-child{transform:translateX(-100%);text-align:right}
+.qref:before{content:"";display:block;width:2px;height:9px;background:#8f9aa5;border-radius:2px;margin:0 auto 3px}
+.qref:first-child:before{margin-left:0}
+.qref:last-child:before{margin-left:auto;margin-right:0}
+.helper-box{margin-top:8px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e5ebf1}
+.helper-box p{margin:0 0 8px;font-size:12px;line-height:1.5;color:#44505c}
+.example-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px;margin:0;padding-left:18px}
+.example-list li{font-size:12px;line-height:1.45;color:#44505c}
+.chart-shell{padding:18px}
+.chart-head{display:block;margin-bottom:14px}
+.chart-head h2{margin:0;font-size:20px}
+.chart-meta{display:none}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.plot-card{min-width:0;border:1px solid var(--border);border-radius:14px;padding:10px;background:#fff}
+.plot-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+.plot-title strong{font-size:16px}
+.plot-title span{font-size:12px;color:var(--muted)}
+.plot-title span:empty{display:none}
+.plot-grid{display:grid;grid-template-columns:88px minmax(0,1fr);grid-template-rows:auto 58px;column-gap:8px;row-gap:0}
+.y-slider-box{
+  grid-column:1;grid-row:1;position:relative;min-height:0;overflow:visible
+}
+.y-slider-box label{
+  position:absolute;
+  left:3px;
+  top:50%;
+  transform:translateY(-50%) rotate(-90deg);
+  transform-origin:left top;
+  font-size:10px;
+  color:var(--muted);
+  white-space:nowrap;
+  letter-spacing:.01em;
+}
+.axis-y-track{
+  position:absolute;
+  left:34px;
+  top:26px;
+  bottom:26px;
+  width:8px;
+  transform:translateX(-50%);
+  border-radius:999px;
+  background:#e7ebef;
+  border:1px solid #aab3bc;
+}
+.axis-y-labels{
+  position:absolute;
+  left:48px;
+  top:24px;
+  bottom:24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  font-size:10px;
+  color:var(--muted);
+  line-height:1;
+  text-align:left;
+  min-width:12px;
+}
+.axis-y-labels span{display:block}
+.axis-y-fill{
+  position:absolute;left:0;bottom:0;width:100%;
+  border-radius:999px;background:#2d6fa3
+}
+.axis-y-thumb{
+  position:absolute;left:50%;width:16px;height:16px;border-radius:50%;
+  background:#2d6fa3;transform:translate(-50%,50%);
+  touch-action:none;cursor:grab
+}
+.axis-y-thumb:active{cursor:grabbing}
+
+.axis-x-wrap{
+  grid-column:2;
+  grid-row:2;
+  position:relative;
+  height:58px;
+}
+.axis-x-track{
+  position:absolute;
+  left:4.230769%;
+  right:1.923077%;
+  top:18px;
+  height:8px;
+  border-radius:999px;
+  background:#e7ebef;
+  border:1px solid #aab3bc;
+}
+.axis-x-fill{
+  position:absolute;
+  left:0;
+  top:0;
+  height:100%;
+  border-radius:999px;
+  background:#2d6fa3;
+}
+.axis-x-thumb{
+  position:absolute;
+  top:50%;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#2d6fa3;
+  transform:translate(-50%,-50%);
+  touch-action:none;
+  cursor:grab;
+}
+.axis-x-thumb:active{cursor:grabbing}
+.axis-x-labels{
+  position:absolute;
+  left:4.230769%;
+  right:1.923077%;
+  top:0;
+  display:flex;
+  justify-content:space-between;
+  font-size:10px;
+  color:var(--muted);
+  line-height:1;
+}
+.axis-x-wrap::after{
+  content:"Flight duration";
+  position:absolute;
+  left:4.230769%;
+  right:1.923077%;
+  top:34px;
+  text-align:center;
+  font-size:10px;
+  color:var(--muted);
+  pointer-events:none;
+}
+.axis-native{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.result-note{margin-top:6px;border-top:1px solid var(--border);padding-top:7px;font-size:12px;line-height:1.45}
+.result-note b{font-size:13px}
+.currentTxt{color:var(--current)} .guvTxt{color:var(--guv)}
+.tooltip{position:absolute;display:none;pointer-events:none;background:rgba(18,25,33,.95);color:white;padding:8px 10px;border-radius:8px;font-size:11px;line-height:1.4;z-index:5;white-space:nowrap}
+.assumptions{padding:20px;margin-top:18px}
+.assumptions h2{font-size:19px;margin:0 0 8px}
+.assumptions h3{font-size:14px;margin:18px 0 7px}
+.assumptions p,.assumptions li{font-size:12.5px;color:#35414c;line-height:1.6}
+.assumptions a{color:var(--accent);text-decoration:none;border-bottom:1px solid #b9cad9}.assumptions a:hover{border-bottom-color:var(--accent)}
+.assumptions .source-note{font-size:11.5px;color:var(--muted);line-height:1.5}
+.reference-list{margin-top:4px}
+.reference-list p{margin:0 0 9px;font-size:11.5px;line-height:1.55;color:#35414c}
+.reference-list p:last-child{margin-bottom:0}
+.reference-list a{word-break:break-word}
+.assumptions .tight{margin:6px 0 0}
+.assumptions .model-table td:first-child{font-weight:700;width:24%}
+.assumptions .model-table td:nth-child(2){width:21%;white-space:nowrap}
+.eq{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f7f8fa;border:1px solid var(--border);border-radius:9px;padding:11px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--border);padding:9px 7px}
+th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+.warn{font-weight:750;color:#8b501b}
+@media(max-width:900px){
+  .two,.top{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .example-list,.values-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .wrap{padding:18px 10px 38px}
+  .plot-grid{grid-template-columns:64px minmax(0,1fr)}
+  h1{font-size:25px}
+  .hero h1{font-size:25px}
+  .airplane-illustration{width:190px}
+  .qref{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>Understanding Airborne Infection Risk During Your Flight</h1>
+
+    <div class="airplane-illustration" aria-hidden="true">
+      <svg viewBox="0 0 260 120" role="img">
+        <ellipse cx="130" cy="102" rx="72" ry="7" fill="#edf2f6"></ellipse>
+        <g transform="translate(8,4)">
+          <path d="M32 61 L93 51 L122 20 C126 15 133 14 139 17 L146 20 L129 49 L205 44 C214 43 221 48 224 55 C221 62 214 67 205 66 L129 61 L146 90 L139 93 C133 96 126 95 122 90 L93 59 L32 69 C25 70 19 67 16 62 C19 58 25 60 32 61 Z"
+                fill="#dce7ef" stroke="#718292" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M83 52 L66 30 L75 28 L105 50" fill="#c7d7e3" stroke="#718292" stroke-width="2"/>
+          <path d="M83 60 L66 82 L75 84 L105 62" fill="#c7d7e3" stroke="#718292" stroke-width="2"/>
+          <circle cx="194" cy="54" r="2.8" fill="#718292"/>
+          <circle cx="184" cy="55" r="2.8" fill="#718292"/>
+          <circle cx="174" cy="56" r="2.8" fill="#718292"/>
+          <circle cx="164" cy="56.5" r="2.8" fill="#718292"/>
+          <circle cx="154" cy="57" r="2.8" fill="#718292"/>
+        </g>
+      </svg>
+    </div>
+
+    <p class="hero-intro">
+      This interactive tool explores how flight duration, infectious passengers, and airborne infectiousness may affect infection risk during air travel.
+    </p>
+  </section>
+
+  <div class="top">
+    <div class="card">
+      <div class="control-card-title">Controls</div>
+
+      <div class="control-section">
+        <div class="label">Quanta emission rate (q)</div>
+        <div class="q-control-grid">
+          <div class="q-track-col">
+            <input id="qSlider" type="range" min="0" max="1000" step="1" value="603" aria-label="Quanta emission rate">
+            <div class="qrefs" id="qrefs"></div>
+          </div>
+          <span id="qVal" class="pill q-pill">0.55 q/h</span>
+        </div>
+        <div class="helper-box">
+          <p><strong>Easy reading:</strong> lower q means less infectious material released into shared air; higher q means more. The slider gently snaps to the four reference points when you move close to them.</p>
+          <ul class="example-list">
+            <li><strong>0.035</strong> = seasonal influenza</li>
+            <li><strong>0.21</strong> = rhinovirus</li>
+            <li><strong>0.55</strong> = SARS-CoV-2</li>
+            <li><strong>3.1</strong> = measles</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <div class="label">Infectious passengers onboard</div>
+        <div class="slider-line">
+          <input id="infectious" type="range" min="1" max="10" step="1" value="1" aria-label="Infectious passengers onboard">
+          <span id="infectiousVal" class="pill">1</span>
+        </div>
+        <div class="small">Conditional scenario: the selected number of infectious passengers is assumed to be present on each modeled flight.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="values-card-title">Selected point values</div>
+      <div class="small" id="valueSelectionText" style="margin-bottom:10px">2 h × 5 flights/year · 1 infectious passenger</div>
+
+      <div class="values-grid">
+        <div class="value-panel current">
+          <h3>Current</h3>
+          <div class="value-row"><span>Single-flight risk</span><strong id="vCurrentSingle">—</strong></div>
+          <div class="value-row"><span>Cumulative risk</span><strong id="vCurrentCum">—</strong></div>
+          <div class="value-row"><span>Expected secondary infections</span><strong id="vCurrentExpected">—</strong></div>
+        </div>
+
+        <div class="value-panel guv">
+          <h3>With GUV</h3>
+          <div class="value-row"><span>Single-flight risk</span><strong id="vGuvSingle">—</strong></div>
+          <div class="value-row"><span>Cumulative risk</span><strong id="vGuvCum">—</strong></div>
+          <div class="value-row"><span>Expected secondary infections</span><strong id="vGuvExpected">—</strong></div>
+        </div>
+      </div>
+
+      <div class="reduction-box">
+        <div><strong>Absolute cumulative-risk reduction:</strong> <span id="vAbsReduction">—</span></div>
+        <div><strong>Relative cumulative-risk reduction:</strong> <span id="vRelReduction">—</span></div>
+        <div><strong>Expected secondary infections prevented:</strong> <span id="vExpectedPrevented">—</span></div>
+      </div>
+
+      <div class="economic-section">
+        <div class="economic-section-title">Illustrative U.S. domestic annual economic burden</div>
+        <div class="economic-box">
+          <div id="economicAvailable" class="economic-values" style="display:none">
+            <div class="economic-value current">
+              <div class="k">Current</div>
+              <div class="v" id="economicCurrent">—</div>
+            </div>
+            <div class="economic-value guv">
+              <div class="k">With GUV</div>
+              <div class="v" id="economicGuv">—</div>
+            </div>
+          </div>
+          <div id="economicUnavailable" class="economic-unavailable">
+            Economic burden is calculated continuously across the full q range using the same generic respiratory-illness cost reference.
+          </div>
+          <div class="economic-reference" id="economicRefLabel">8.777M U.S. domestic flights/year · ≈$138 average medical + work-loss cost per respiratory illness episode · Fendrick et al. (2003)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="chart-shell">
+    <div class="chart-head">
+      <div>
+        <h2 id="mainTitle">q = 0.55 quanta/hour</h2>
+        <div class="small" id="selectionText">Selected: 2 h × 5 flights/year · 1 infectious passenger</div>
+        
+      </div>
+    </div>
+
+    <div class="two">
+      <div class="plot-card">
+        <div class="plot-title"><strong class="currentTxt">Current</strong><span id="curScale"></span></div>
+        <div class="plot-grid">
+          <div class="y-slider-box">
+            <label>Flights/year</label>
+            <div class="axis-y-track" data-slider="flights" data-panel="1">
+              <div class="axis-y-fill"></div>
+              <div class="axis-y-thumb" role="slider" tabindex="0" aria-label="Flights per year" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5"></div>
+            </div>
+            <div class="axis-y-labels"><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></div>
+          </div>
+          <div class="svg-box">
+            <div id="tip1" class="tooltip"></div>
+            <svg id="svgCurrent" viewBox="0 0 520 390" role="img" aria-label="Current cumulative infection risk heatmap"></svg>
+          </div>
+          <div class="axis-x-wrap">
+            <div class="axis-x-labels"><span>1 h</span><span>2 h</span><span>3 h</span><span>4 h</span><span>5 h</span><span>6 h</span><span>7 h</span><span>8 h</span><span>9 h</span><span>10 h</span><span>11 h</span></div>
+            <div class="axis-x-track" data-slider="hours" data-panel="1">
+              <div class="axis-x-fill"></div>
+              <div class="axis-x-thumb" role="slider" tabindex="0" aria-label="Flight duration in hours" aria-valuemin="1" aria-valuemax="11" aria-valuenow="2"></div>
+            </div>
+          </div>
+        </div>
+        <div id="currentNote" class="result-note"></div>
+      </div>
+
+      <div class="plot-card">
+        <div class="plot-title"><strong class="guvTxt">With GUV</strong><span id="guvScale"></span></div>
+        <div class="plot-grid">
+          <div class="y-slider-box">
+            <label>Flights/year</label>
+            <div class="axis-y-track" data-slider="flights" data-panel="2">
+              <div class="axis-y-fill"></div>
+              <div class="axis-y-thumb" role="slider" tabindex="0" aria-label="Flights per year" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5"></div>
+            </div>
+            <div class="axis-y-labels"><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></div>
+          </div>
+          <div class="svg-box">
+            <div id="tip2" class="tooltip"></div>
+            <svg id="svgGuv" viewBox="0 0 520 390" role="img" aria-label="Cumulative infection risk heatmap with GUV"></svg>
+          </div>
+          <div class="axis-x-wrap">
+            <div class="axis-x-labels"><span>1 h</span><span>2 h</span><span>3 h</span><span>4 h</span><span>5 h</span><span>6 h</span><span>7 h</span><span>8 h</span><span>9 h</span><span>10 h</span><span>11 h</span></div>
+            <div class="axis-x-track" data-slider="hours" data-panel="2">
+              <div class="axis-x-fill"></div>
+              <div class="axis-x-thumb" role="slider" tabindex="0" aria-label="Flight duration in hours" aria-valuemin="1" aria-valuemax="11" aria-valuenow="2"></div>
+            </div>
+          </div>
+        </div>
+        <div id="guvNote" class="result-note"></div>
+      </div>
+    </div>
+  </section>
+
+<section class="assumptions">
+    <h2>Model and assumptions</h2>
+    <p>
+      This is an <strong>illustrative conditional scenario model</strong>. It compares airborne infection risk under a selected flight scenario with and without an illustrative GUV intervention. It is not a forecast for any specific flight, traveler, airline, or year.
+    </p>
+
+    <h3>Fixed inputs</h3>
+    <table class="model-table">
+      <thead>
+        <tr><th>Parameter</th><th>Value used</th><th>Basis and source</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mean cabin CO₂</td>
+          <td><b>1,353 ppm</b></td>
+          <td>
+            Mean measured cabin CO₂ across 179 U.S. domestic flights in Cao et al. (2019).
+            <a href="https://doi.org/10.1177/1420326X18793997" target="_blank" rel="noopener">Cao et al., Indoor and Built Environment</a>.
+          </td>
+        </tr>
+        <tr>
+          <td>Background CO₂</td>
+          <td><b>450 ppm</b></td>
+          <td>
+            Illustrative background concentration used to calculate excess indoor CO₂. This value is a modeling assumption and is <b>not</b> reported by Cao et al.; no empirical source is claimed for this fixed value.
+          </td>
+        </tr>
+        <tr>
+          <td>Exhaled-breath CO₂ increment, C<sub>a</sub></td>
+          <td><b>38,000 ppm</b></td>
+          <td>
+            CO₂-based rebreathed-air framework from Rudnick &amp; Milton (2003).
+            <a href="https://doi.org/10.1034/j.1600-0668.2003.00189.x" target="_blank" rel="noopener">Rudnick &amp; Milton, Indoor Air</a>.
+          </td>
+        </tr>
+        <tr>
+          <td>Rebreathed-air fraction, f</td>
+          <td><b>2.376%</b></td>
+          <td>
+            Derived in this model as (1,353 − 450) / 38,000 = 0.02376. This is a calculated value, not an independently measured aircraft parameter.
+          </td>
+        </tr>
+        <tr>
+          <td>Passengers per flight, n</td>
+          <td><b>96</b></td>
+          <td>
+            Derived from the BTS National Summary for the 12 months ending June 2026: 841 million enplaned passengers / 8.777 million departures = 95.8, rounded to 96 passengers per departure.
+            <a href="https://transtats.bts.gov/ot_delay/Homepage.asp" target="_blank" rel="noopener">U.S. Bureau of Transportation Statistics (BTS)</a>.
+          </td>
+        </tr>
+        <tr>
+          <td>U.S. domestic annual flight scale</td>
+          <td><b>8.777 million departures/year</b></td>
+          <td>
+            BTS National Summary, 12 months ending June 2026: 8.777 million departures.
+            <a href="https://transtats.bts.gov/ot_delay/Homepage.asp" target="_blank" rel="noopener">BTS National Summary</a>.
+          </td>
+        </tr>
+        <tr>
+          <td>Generic respiratory-illness economic burden</td>
+          <td><b>≈ $138 per illness episode (2025 USD)</b></td>
+          <td>
+            Fendrick et al. (2003) estimated about 500 million non-influenza viral respiratory-tract-infection episodes/year, $17B in direct medical costs, and $22.5B in indirect costs, implying ≈$79/episode in source-era dollars.
+            <a href="https://jamanetwork.com/journals/jamainternalmedicine/fullarticle/215118" target="_blank" rel="noopener">Fendrick et al., Archives of Internal Medicine</a>.
+            The model approximately converts $79 to 2025 USD using annual-average CPI-U (2003: 78.967; 2025: 138.289), yielding ≈$138.
+            <a href="https://www.bls.gov/pir/spm/spm_chart_2025data.htm" target="_blank" rel="noopener">U.S. Bureau of Labor Statistics</a>.
+          </td>
+        </tr>
+        <tr>
+          <td>Illustrative GUV effect</td>
+          <td><b>75% reduction in effective airborne quanta</b></td>
+          <td>
+            <b>Scenario assumption, not aircraft-specific measured efficacy.</b> The model uses 75% as an illustrative upper-bound intervention scenario. The value is motivated by the upper end of a 30–75% population-transmission reduction range discussed in a Founders Pledge review of GUV; that review explicitly notes substantial uncertainty and the need for more real-world transmission evidence.
+            <a href="https://www.founderspledge.com/research/germicidal-ultraviolet-light-guv-and-disease-transmission-reduction" target="_blank" rel="noopener">Founders Pledge, GUV and Disease Transmission Reduction (updated 2024)</a>.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Interactive inputs</h3>
+    <p class="tight">
+      <strong>Quanta emission rate (q):</strong> 0.035–3.1 quanta/hour. The four labeled points are resting, oral-breathing median marker values from Mikszewski et al. (2021): seasonal influenza 0.035, rhinovirus 0.21, SARS-CoV-2 0.55, and measles 3.1 quanta/hour.
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8378671/" target="_blank" rel="noopener">Mikszewski et al., Geoscience Frontiers</a>.
+      The slider may take any value in this range; the four values are marker values and snap points only.
+    </p>
+    <p class="tight">
+      <strong>Infectious passengers (I):</strong> 1–10. This is a user-selected conditional scenario, not an estimate of infection prevalence on U.S. flights. The susceptible passenger count updates automatically as <b>96 − I</b>.
+    </p>
+    <p class="tight">
+      <strong>Flight duration (Δt):</strong> 1–11 hours. <strong>Repeated flights (m):</strong> 0–10 one-way flights/year. Both are user-selected scenario inputs.
+    </p>
+
+    <h3>Model equations</h3>
+    <div class="eq">Rebreathed-air fraction [1]:
+f = (CO₂ cabin − CO₂ background) / Cₐ
+
+Single-flight infection probability for one susceptible passenger [1,2]:
+P = 1 − exp[−(I × q / n) × f × Δt]
+
+Expected secondary infections on one flight [1]:
+E = (n − I) × P
+
+Cumulative risk for one susceptible traveler over m comparable flights (derived in this model):
+P_cum = 1 − (1 − P)^m
+
+Illustrative GUV scenario [3]:
+q_GUV = q × (1 − 0.75)
+
+Illustrative U.S. domestic annual economic burden [4]:
+B = E × $138 × 8,777,000</div>
+
+    <p class="tight">
+      <strong>Heatmap color scale.</strong> Both panels use the same cumulative infection-risk scale, from 0% to the highest-risk combination available in this model. With the current parameter bounds, that upper limit is <strong>57.01%</strong>, which occurs at q = 3.1 quanta/hour, 10 infectious passengers, 11 hours, and 10 flights/year. To make differences at lower risk levels easier to see, the heatmap uses a <strong>square-root color mapping</strong>. This changes only the visual shading, not the calculated risk values.
+    </p>
+
+    <p class="source-note">
+      <strong>Interpretation.</strong> The annual economic value is a scale-up of the currently selected flight scenario across 8.777 million comparable departures. It combines modeled secondary infections with an approximate generic medical + absenteeism-related cost per respiratory illness episode. It is not a forecast of actual annual U.S. infections or cash savings, and it does not include willingness to pay, pain and suffering, QALYs, VSL, or long-term sequelae. The 75% GUV value should be read strictly as an illustrative upper-bound scenario rather than a validated aircraft-specific performance estimate.
+    </p>
+
+    <h3>References for model equations</h3>
+    <div class="reference-list numbered">
+      <p>
+        <strong>[1] Rudnick, S. N., &amp; Milton, D. K. (2003).</strong>
+        Risk of indoor airborne infection transmission estimated from carbon dioxide concentration.
+        <em>Indoor Air, 13</em>(3), 237–245.
+        <a href="https://doi.org/10.1034/j.1600-0668.2003.00189.x" target="_blank" rel="noopener">https://doi.org/10.1034/j.1600-0668.2003.00189.x</a>
+      </p>
+
+      <p>
+        <strong>[2] Riley, E. C., Murphy, G., &amp; Riley, R. L. (1978).</strong>
+        Airborne spread of measles in a suburban elementary school.
+        <em>American Journal of Epidemiology, 107</em>(5), 421–432.
+        <a href="https://doi.org/10.1093/oxfordjournals.aje.a112560" target="_blank" rel="noopener">https://doi.org/10.1093/oxfordjournals.aje.a112560</a>
+      </p>
+
+      <p>
+        <strong>[3] Kleinwaks, G., et al. (2023); Ruhl, C. (2024).</strong>
+        GUV scenario basis. Kleinwaks et al., <em>Air Safety to Combat Global Catastrophic Biorisk</em>; summarized and discussed in Ruhl, <em>Germicidal Ultraviolet Light (GUV) and Disease Transmission Reduction</em>, Founders Pledge.
+        <a href="https://drive.google.com/file/d/1QKusCnLzUs041nIuiq6nMxSIRcXaGiKq/view" target="_blank" rel="noopener">Kleinwaks et al. report</a>
+        ·
+        <a href="https://www.founderspledge.com/research/germicidal-ultraviolet-light-guv-and-disease-transmission-reduction" target="_blank" rel="noopener">Ruhl / Founders Pledge review</a>
+      </p>
+
+      <p>
+        <strong>[4] Fendrick, A. M., et al. (2003); U.S. Bureau of Labor Statistics (2025); U.S. Bureau of Transportation Statistics (2026).</strong>
+        Economic-burden input, inflation adjustment, and annual U.S. domestic departure scale.
+        <a href="https://doi.org/10.1001/archinte.163.4.487" target="_blank" rel="noopener">Fendrick et al.</a>
+        ·
+        <a href="https://www.bls.gov/pir/spm/spm_chart_2025data.htm" target="_blank" rel="noopener">BLS CPI source</a>
+        ·
+        <a href="https://transtats.bts.gov/ot_delay/Homepage.asp" target="_blank" rel="noopener">BTS National Summary</a>
+      </p>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const NS='http://www.w3.org/2000/svg';
+  const QMIN=0.035, QMAX=3.1;
+  const refs=[
+    {name:'Seasonal influenza',q:0.035},
+    {name:'Rhinovirus',q:0.21},
+    {name:'SARS-CoV-2',q:0.55},
+    {name:'Measles',q:3.1}
+  ];
+
+  // Generic economic consequence applied continuously across the full q range.
+  // Approximate 2025-USD burden per non-influenza viral respiratory tract infection episode,
+  // derived from Fendrick et al. (2003) and adjusted using BLS annual-average CPI-U.
+  const GENERIC_VRTI_COST=138;
+  const US_DOMESTIC_FLIGHTS_ANNUAL=8777000;
+  const economicRefs=[
+    {name:'Seasonal influenza reference',q:0.035,cost:GENERIC_VRTI_COST},
+    {name:'Common cold reference',q:0.21,cost:GENERIC_VRTI_COST},
+    {name:'COVID-19 reference',q:0.55,cost:GENERIC_VRTI_COST},
+    {name:'Measles reference',q:3.1,cost:GENERIC_VRTI_COST}
+  ]; // Used for reference labels and snapping; not for disease-specific economic costs.
+
+  let q=0.55, hours=2, flights=5, I=1;
+  const C={co2Cabin:1353,co2Bg:450,Ca:38000,n:96,guvReduction:.75};
+  const f=(C.co2Cabin-C.co2Bg)/C.Ca;
+
+  const qSlider=document.getElementById('qSlider'),qVal=document.getElementById('qVal');
+  const inf=document.getElementById('infectious'),infVal=document.getElementById('infectiousVal');
+  const xTracks=[...document.querySelectorAll('[data-slider="hours"]')];
+  const yTracks=[...document.querySelectorAll('[data-slider="flights"]')];
+
+  function qFromSlider(v){
+    const exact=economicRefs.find(r=>Math.round(sliderFromQ(r.q))===Math.round(v));
+    if(exact) return exact.q;
+    const t=v/1000;
+    return Math.exp(Math.log(QMIN)+t*(Math.log(QMAX)-Math.log(QMIN)));
+  }
+  function sliderFromQ(val){
+    return 1000*(Math.log(val)-Math.log(QMIN))/(Math.log(QMAX)-Math.log(QMIN));
+  }
+  function formatQ(x){
+    if(x<0.1) return x.toFixed(3);
+    return x.toFixed(2);
+  }
+  qSlider.value=Math.round(sliderFromQ(q));
+
+  const qrefs=document.getElementById('qrefs');
+  refs.forEach((r,idx)=>{
+    const el=document.createElement('div');
+    el.className='qref';
+    const pct = idx===0 ? 0 : (idx===refs.length-1 ? 100 : sliderFromQ(r.q)/10);
+    el.style.left=pct+'%';
+    el.textContent=r.q;
+    qrefs.appendChild(el);
+  });
+
+  function singleP(qv,I,h,guv){
+    const qe=guv?qv*(1-C.guvReduction):qv;
+    return 1-Math.exp(-((I*qe/C.n)*f*h));
+  }
+  function cum(p,m){return 1-Math.pow(1-p,m)}
+  function expected(p,I){return (C.n-I)*p}
+  function fmtPct(p){
+    const v=100*p;
+    return (v<.01?v.toFixed(3):v.toFixed(2))+'%';
+  }
+  function fmtN(x){return x<.01?x.toFixed(3):x.toFixed(2)}
+  function fmtPP(p){return (p*100).toFixed(3)+' percentage points'}
+  function mk(tag,a={}){
+    const e=document.createElementNS(NS,tag);
+    Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));
+    return e;
+  }
+  function color(t){
+    // Fixed numeric scale is preserved. A square-root visual transform makes
+    // low risks visible without changing the underlying values or ordering.
+    const cs=['#f7f9fb','#e6eff7','#c7dced','#9cc3df','#6aa7cf','#347fba','#0f5b96'];
+    t=Math.max(0,Math.min(1,t));
+    t=Math.sqrt(t);
+    const z=t*(cs.length-1),lo=Math.floor(z),hi=Math.min(cs.length-1,lo+1),a=z-lo;
+    const rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+    const x=rgb(cs[lo]),y=rgb(cs[hi]);
+    const c=x.map((v,i)=>Math.round(v+(y[i]-v)*a));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+
+  const GLOBAL_MAX=100*cum(singleP(QMAX,10,11,false),10);
+
+  qSlider.addEventListener('input',()=>{
+    let raw=+qSlider.value;
+    const snapThreshold=18; // slider units out of 1000; keeps snapping local and unobtrusive
+    let nearest=null, nearestPos=null, nearestDist=Infinity;
+
+    economicRefs.forEach(r=>{
+      const pos=Math.round(sliderFromQ(r.q));
+      const d=Math.abs(raw-pos);
+      if(d<nearestDist){
+        nearestDist=d;
+        nearest=r;
+        nearestPos=pos;
+      }
+    });
+
+    if(nearest && nearestDist<=snapThreshold){
+      qSlider.value=nearestPos;
+      q=nearest.q;
+    }else{
+      q=qFromSlider(raw);
+    }
+    render();
+  });
+  inf.addEventListener('input',()=>{I=+inf.value;render()});
+
+
+  function nearestReference(qv){
+    let best=refs[0],dist=Infinity;
+    refs.forEach(r=>{
+      const d=Math.abs(Math.log(qv)-Math.log(r.q));
+      if(d<dist){dist=d;best=r}
+    });
+    return dist<0.04 ? best : null;
+  }
+
+  function exactEconomicReference(qv){
+    return economicRefs.find(r=>Math.abs(qv-r.q)<1e-12) || null;
+  }
+
+  function fmtDollar(x){
+    if(x<1) return '$'+x.toFixed(2);
+    if(x>=1000000000) return '$'+(x/1000000000).toFixed(2)+'B';
+    if(x>=1000000) return '$'+(x/1000000).toFixed(2)+'M';
+    if(x>=1000) return '$'+(x/1000).toFixed(1)+'K';
+    return '$'+Math.round(x).toLocaleString('en-US');
+  }
+
+
+  function updateAxisSliders(){
+    const hx=(hours-1)/10;
+    xTracks.forEach(track=>{
+      track.querySelector('.axis-x-fill').style.width=(hx*100)+'%';
+      track.querySelector('.axis-x-thumb').style.left=(hx*100)+'%';
+      track.querySelector('.axis-x-thumb').setAttribute('aria-valuenow',hours);
+    });
+
+    const fy=flights/10;
+    yTracks.forEach(track=>{
+      track.querySelector('.axis-y-fill').style.height=(fy*100)+'%';
+      track.querySelector('.axis-y-thumb').style.bottom=(fy*100)+'%';
+      track.querySelector('.axis-y-thumb').setAttribute('aria-valuenow',flights);
+    });
+  }
+
+  function bindAxisTrack(track,kind){
+    const isX=kind==='hours';
+    const min=isX?1:0, max=isX?11:10;
+
+    function setFromEvent(ev){
+      const r=track.getBoundingClientRect();
+      let t;
+      if(isX){
+        t=(ev.clientX-r.left)/r.width;
+      }else{
+        t=1-((ev.clientY-r.top)/r.height);
+      }
+      t=Math.max(0,Math.min(1,t));
+      const val=Math.round(min+t*(max-min));
+      if(isX) hours=val; else flights=val;
+      render();
+    }
+
+    track.addEventListener('pointerdown',ev=>{
+      ev.preventDefault();
+      track.setPointerCapture?.(ev.pointerId);
+      setFromEvent(ev);
+      const move=e=>setFromEvent(e);
+      const up=e=>{
+        track.removeEventListener('pointermove',move);
+        track.removeEventListener('pointerup',up);
+        track.removeEventListener('pointercancel',up);
+      };
+      track.addEventListener('pointermove',move);
+      track.addEventListener('pointerup',up);
+      track.addEventListener('pointercancel',up);
+    });
+
+    const thumb=track.querySelector(isX?'.axis-x-thumb':'.axis-y-thumb');
+    thumb.addEventListener('keydown',ev=>{
+      if(ev.key!=='ArrowLeft'&&ev.key!=='ArrowRight'&&ev.key!=='ArrowUp'&&ev.key!=='ArrowDown') return;
+      ev.preventDefault();
+      let delta=(ev.key==='ArrowRight'||ev.key==='ArrowUp')?1:-1;
+      if(isX) hours=Math.max(min,Math.min(max,hours+delta));
+      else flights=Math.max(min,Math.min(max,flights+delta));
+      render();
+    });
+  }
+
+  xTracks.forEach(t=>bindAxisTrack(t,'hours'));
+  yTracks.forEach(t=>bindAxisTrack(t,'flights'));
+
+  function draw(svg,guv,tipId){
+    svg.innerHTML='';
+    // Plot-only heatmap: no duplicate tick numbers or axis titles inside the SVG.
+    const W=520,H=390,M={l:12,r:6,t:10,b:8},pw=W-M.l-M.r,ph=H-M.t-M.b,cw=pw/11,ch=ph/11;
+
+    for(let m=0;m<=10;m++){
+      for(let h=1;h<=11;h++){
+        const p=singleP(q,I,h,guv),v=100*cum(p,m);
+        const r=mk('rect',{
+          x:M.l+(h-1)*cw+.5,
+          y:M.t+ph-(m+1)*ch+.5,
+          width:cw-1,height:ch-1,rx:1.5,
+          fill:color(v/GLOBAL_MAX)
+        });
+        r.style.cursor='pointer';
+        r.addEventListener('click',()=>{
+          hours=h;flights=m;render();
+        });
+        const tip=document.getElementById(tipId);
+        r.addEventListener('mousemove',ev=>{
+          tip.style.display='block';
+          tip.innerHTML=`q = ${formatQ(q)} q/h<br>${h} h × ${m} flight${m!==1?'s':''}/yr<br><b>${v.toFixed(3)}%</b> cumulative risk`;
+          const box=svg.getBoundingClientRect();
+          tip.style.left=Math.min(ev.clientX-box.left+10,box.width-165)+'px';
+          tip.style.top=Math.max(5,ev.clientY-box.top-52)+'px';
+        });
+        r.addEventListener('mouseleave',()=>tip.style.display='none');
+        svg.appendChild(r);
+      }
+    }
+
+    svg.appendChild(mk('rect',{
+      x:M.l+(hours-1)*cw+1.5,
+      y:M.t+ph-(flights+1)*ch+1.5,
+      width:cw-3,height:ch-3,rx:2,
+      fill:'none',stroke:'#6f7a85','stroke-width':'1.5','stroke-dasharray':'5 4'
+    }));
+  }
+
+  function render(){
+    I=+inf.value;
+    qVal.textContent=formatQ(q)+' q/h';
+    infVal.textContent=I;
+
+    const ref=nearestReference(q);
+    document.getElementById('mainTitle').textContent=`q = ${formatQ(q)} quanta/hour`;
+
+    document.getElementById('selectionText').textContent=
+      `Selected: ${hours} h × ${flights} flight${flights===1?'':'s'}/year · ${I} infectious passenger${I>1?'s':''}`;
+    updateAxisSliders();
+
+
+    draw(document.getElementById('svgCurrent'),false,'tip1');
+    draw(document.getElementById('svgGuv'),true,'tip2');
+
+    const pC=singleP(q,I,hours,false),pG=singleP(q,I,hours,true);
+    const cC=cum(pC,flights),cG=cum(pG,flights);
+    const eC=expected(pC,I),eG=expected(pG,I);
+    const absReduction=cC-cG;
+    const relReduction=cC>0 ? absReduction/cC : 0;
+    const expectedPrevented=eC-eG;
+
+    document.getElementById('valueSelectionText').textContent=
+      `${hours} h × ${flights} flight${flights===1?'':'s'}/year · ${I} infectious passenger${I>1?'s':''}`;
+    document.getElementById('vCurrentSingle').textContent=fmtPct(pC);
+    document.getElementById('vCurrentCum').textContent=fmtPct(cC);
+    document.getElementById('vCurrentExpected').textContent=fmtN(eC);
+    document.getElementById('vGuvSingle').textContent=fmtPct(pG);
+    document.getElementById('vGuvCum').textContent=fmtPct(cG);
+    document.getElementById('vGuvExpected').textContent=fmtN(eG);
+    document.getElementById('vAbsReduction').textContent=fmtPP(absReduction);
+    document.getElementById('vRelReduction').textContent=(relReduction*100).toFixed(1)+'%';
+    document.getElementById('vExpectedPrevented').textContent=fmtN(expectedPrevented);
+
+    const econAvailable=document.getElementById('economicAvailable');
+    const econUnavailable=document.getElementById('economicUnavailable');
+    const econLabel=document.getElementById('economicRefLabel');
+
+    const burdenCurrent=eC*GENERIC_VRTI_COST*US_DOMESTIC_FLIGHTS_ANNUAL;
+    const burdenGuv=eG*GENERIC_VRTI_COST*US_DOMESTIC_FLIGHTS_ANNUAL;
+    econAvailable.style.display='grid';
+    econUnavailable.style.display='none';
+    document.getElementById('economicCurrent').textContent=fmtDollar(burdenCurrent);
+    document.getElementById('economicGuv').textContent=fmtDollar(burdenGuv);
+    econLabel.textContent=`Reference: 8.777M U.S. domestic flights/year · ≈$${GENERIC_VRTI_COST} average medical + work-loss cost per respiratory illness episode · Fendrick et al. (2003)`;
+
+    document.getElementById('currentNote').innerHTML=
+      `<b>Selected point:</b> ${fmtPct(cC)} cumulative traveler risk over ${flights} flight${flights===1?'':'s'}. `+
+      `On one ${hours}-hour flight, expected secondary infections among the ${C.n-I} susceptible passengers: <b>${fmtN(eC)}</b>.`;
+
+    document.getElementById('guvNote').innerHTML=
+      `<b>Selected point:</b> ${fmtPct(cG)} cumulative traveler risk over ${flights} flight${flights===1?'':'s'}. `+
+      `On one ${hours}-hour flight, expected secondary infections among the ${C.n-I} susceptible passengers: <b>${fmtN(eG)}</b>. `+
+      `<span class="guvTxt">Absolute cumulative-risk reduction: ${((cC-cG)*100).toFixed(3)} percentage points.</span>`;
+  }
+  render();
+})();
+</script>
+</body>
+</html>
