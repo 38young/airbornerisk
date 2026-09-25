@@ -222,6 +222,46 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
 }
 @media(max-width:700px){
   .example-list,.values-grid{grid-template-columns:1fr}
+
+  /* Mobile: convert the fixed-input table into stacked rows */
+  .model-table thead{display:none}
+  .model-table,
+  .model-table tbody,
+  .model-table tr,
+  .model-table td{
+    display:block;
+    width:100%;
+  }
+  .model-table tr{
+    padding:12px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .model-table tr:last-child{border-bottom:none}
+  .model-table td{
+    border-bottom:none;
+    padding:2px 0;
+    white-space:normal !important;
+  }
+  .model-table td:first-child{
+    width:auto;
+    font-size:13px;
+    font-weight:800;
+    color:var(--text);
+    margin-bottom:4px;
+  }
+  .model-table td:nth-child(2){
+    width:auto;
+    white-space:normal;
+    font-size:12px;
+    font-weight:700;
+    color:#44515d;
+    margin-bottom:6px;
+  }
+  .model-table td:nth-child(3){
+    font-size:12px;
+    line-height:1.55;
+    color:#44515d;
+  }
 }
 @media(max-width:600px){
   .wrap{padding:18px 10px 38px}
