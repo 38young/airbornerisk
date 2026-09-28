@@ -411,9 +411,9 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
             <label>Flights/year</label>
             <div class="axis-y-track" data-slider="flights" data-panel="1">
               <div class="axis-y-fill"></div>
-              <div class="axis-y-thumb" role="slider" tabindex="0" aria-label="Flights per year" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5"></div>
+              <div class="axis-y-thumb" role="slider" tabindex="0" aria-label="Flights per year" aria-valuemin="1" aria-valuemax="10" aria-valuenow="5"></div>
             </div>
-            <div class="axis-y-labels"><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></div>
+            <div class="axis-y-labels"><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
           </div>
           <div class="svg-box">
             <div id="tip1" class="tooltip"></div>
@@ -437,9 +437,9 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
             <label>Flights/year</label>
             <div class="axis-y-track" data-slider="flights" data-panel="2">
               <div class="axis-y-fill"></div>
-              <div class="axis-y-thumb" role="slider" tabindex="0" aria-label="Flights per year" aria-valuemin="0" aria-valuemax="10" aria-valuenow="5"></div>
+              <div class="axis-y-thumb" role="slider" tabindex="0" aria-label="Flights per year" aria-valuemin="1" aria-valuemax="10" aria-valuenow="5"></div>
             </div>
-            <div class="axis-y-labels"><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span><span>0</span></div>
+            <div class="axis-y-labels"><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
           </div>
           <div class="svg-box">
             <div id="tip2" class="tooltip"></div>
@@ -542,7 +542,7 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
       <strong>Infectious passengers (I):</strong> 1–10. This is a user-selected conditional scenario, not an estimate of infection prevalence on U.S. flights. The susceptible passenger count updates automatically as <b>96 − I</b>.
     </p>
     <p class="tight">
-      <strong>Flight duration (Δt):</strong> 1–11 hours. <strong><br>Repeated flights (m):</strong> 0–10 one-way flights/year.
+      <strong>Flight duration (Δt):</strong> 1–11 hours. <strong><br>Repeated flights (m):</strong> 1–10 one-way flights/year.
     </p>
 
     <h3>Model equations</h3>
@@ -749,7 +749,7 @@ B = E × $138 × 8,777,000</div>
       track.querySelector('.axis-x-thumb').setAttribute('aria-valuenow',hours);
     });
 
-    const fy=flights/10;
+    const fy=(flights-1)/9;
     yTracks.forEach(track=>{
       track.querySelector('.axis-y-fill').style.height=(fy*100)+'%';
       track.querySelector('.axis-y-thumb').style.bottom=(fy*100)+'%';
@@ -759,7 +759,7 @@ B = E × $138 × 8,777,000</div>
 
   function bindAxisTrack(track,kind){
     const isX=kind==='hours';
-    const min=isX?1:0, max=isX?11:10;
+    const min=1, max=isX?11:10;
 
     function setFromEvent(ev){
       const r=track.getBoundingClientRect();
@@ -807,14 +807,14 @@ B = E × $138 × 8,777,000</div>
   function draw(svg,guv,tipId){
     svg.innerHTML='';
     // Plot-only heatmap: no duplicate tick numbers or axis titles inside the SVG.
-    const W=520,H=390,M={l:12,r:6,t:10,b:8},pw=W-M.l-M.r,ph=H-M.t-M.b,cw=pw/11,ch=ph/11;
+    const W=520,H=390,M={l:12,r:6,t:10,b:8},pw=W-M.l-M.r,ph=H-M.t-M.b,cw=pw/11,ch=ph/10;
 
-    for(let m=0;m<=10;m++){
+    for(let m=1;m<=10;m++){
       for(let h=1;h<=11;h++){
         const p=singleP(q,I,h,guv),v=100*cum(p,m);
         const r=mk('rect',{
           x:M.l+(h-1)*cw+.5,
-          y:M.t+ph-(m+1)*ch+.5,
+          y:M.t+ph-m*ch+.5,
           width:cw-1,height:ch-1,rx:1.5,
           fill:color(v/GLOBAL_MAX)
         });
@@ -837,7 +837,7 @@ B = E × $138 × 8,777,000</div>
 
     svg.appendChild(mk('rect',{
       x:M.l+(hours-1)*cw+1.5,
-      y:M.t+ph-(flights+1)*ch+1.5,
+      y:M.t+ph-flights*ch+1.5,
       width:cw-3,height:ch-3,rx:2,
       fill:'none',stroke:'#6f7a85','stroke-width':'1.5','stroke-dasharray':'5 4'
     }));
