@@ -897,7 +897,7 @@ B = E × $138 × 8,777,000</div>
     document.getElementById('guvNote').innerHTML=
       `<b>Selected point:</b> ${fmtPct(cG)} cumulative traveler risk over ${flights} flight${flights===1?'':'s'}. `+
       `On one ${hours}-hour flight, expected secondary infections among the ${C.n-I} susceptible passengers: <b>${fmtN(eG)}</b>. `+
-      `<span class="guvTxt">Absolute cumulative-risk reduction: ${((cC-cG)*100).toFixed(3)} percentage points.</span>`;
+      `<span class="guvTxt">Absolute cumulative-risk reduction: ${((cC-cG)*100).toFixed(3)} pp.</span>`;
   }
   render();
 })();
