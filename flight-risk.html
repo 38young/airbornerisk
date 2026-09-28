@@ -367,9 +367,9 @@ th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.
       </div>
 
       <div class="reduction-box">
-        <div><strong>Absolute cumulative-risk reduction:</strong> <span id="vAbsReduction">—</span></div>
-        <div><strong>Relative cumulative-risk reduction:</strong> <span id="vRelReduction">—</span></div>
-        <div><strong>Expected secondary infections prevented:</strong> <span id="vExpectedPrevented">—</span></div>
+        <div><strong>(1) Absolute cumulative-risk reduction:</strong> <span id="vAbsReduction">—</span></div>
+        <div><strong>(2) Relative cumulative-risk reduction:</strong> <span id="vRelReduction">—</span></div>
+        <div><strong>(3) Expected secondary infections prevented:</strong> <span id="vExpectedPrevented">—</span></div>
       </div>
 
       <div class="economic-section">
@@ -560,6 +560,15 @@ P_cum = 1 − (1 − P)^m
 
 Illustrative GUV scenario [3]:
 q_GUV = q × (1 − 0.75)
+
+(1) Absolute cumulative-risk reduction:
+ΔP_cum = P_cum,current − P_cum,GUV
+
+(2) Relative cumulative-risk reduction:
+RRR = (P_cum,current − P_cum,GUV) / P_cum,current × 100
+
+(3) Expected secondary infections prevented:
+ΔE = E_current − E_GUV
 
 Illustrative U.S. domestic annual economic burden [4]:
 B = E × $138 × 8,777,000</div>
