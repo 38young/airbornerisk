@@ -672,7 +672,7 @@ B = E × $138 × 8,777,000</div>
     return (v<.01?v.toFixed(3):v.toFixed(2))+'%';
   }
   function fmtN(x){return x<.01?x.toFixed(3):x.toFixed(2)}
-  function fmtPP(p){return (p*100).toFixed(3)+' percentage points'}
+  function fmtPP(p){return (p*100).toFixed(3)+'%P'}
   function mk(tag,a={}){
     const e=document.createElementNS(NS,tag);
     Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));
